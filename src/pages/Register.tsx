@@ -1,23 +1,26 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Loader2, LogIn, ArrowLeft, Mail, Lock } from 'lucide-react';
+import { Loader2, UserPlus, ArrowLeft, Mail, Lock, User as UserIcon } from 'lucide-react';
 
-const Login: React.FC = () => {
+const Register: React.FC = () => {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState<'teacher' | 'student'>('student');
   const [loading, setLoading] = useState(false);
-  const { signIn } = useAuth();
+  const { signUp } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      await signIn({ email, password });
-      navigate('/admin');
-    } catch (error) {
-      alert('Erro ao fazer login. Verifique suas credenciais.');
+      await signUp({ name, email, password, role });
+      alert('Conta criada com sucesso! Faça login para continuar.');
+      navigate('/login');
+    } catch (error: any) {
+      alert(error.message || 'Erro ao criar conta. Tente novamente.');
     } finally {
       setLoading(false);
     }
@@ -33,18 +36,34 @@ const Login: React.FC = () => {
           </Link>
           <div className="flex justify-center mb-6">
             <div className="p-4 bg-blue-50 rounded-2xl">
-              <LogIn className="text-blue-600" size={32} />
+              <UserPlus className="text-blue-600" size={32} />
             </div>
           </div>
           <h2 className="text-center text-3xl font-extrabold text-gray-900">
-            Acesso Restrito
+            Criar Nova Conta
           </h2>
           <p className="mt-2 text-center text-sm text-gray-500 font-medium">
-            Apenas para professores e administradores
+            Junte-se à comunidade FIAP Challenge
           </p>
         </div>
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm space-y-4">
+            <div className="relative">
+              <label htmlFor="name" className="sr-only">Nome Completo</label>
+              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                <UserIcon className="h-5 w-5 text-gray-400" />
+              </div>
+              <input
+                id="name"
+                name="name"
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="appearance-none rounded-xl relative block w-full px-12 py-3 border border-gray-200 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all sm:text-sm"
+                placeholder="Seu nome completo"
+              />
+            </div>
             <div className="relative">
               <label htmlFor="email-address" className="sr-only">Email</label>
               <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -71,13 +90,26 @@ const Login: React.FC = () => {
                 id="password"
                 name="password"
                 type="password"
-                autoComplete="current-password"
+                autoComplete="new-password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="appearance-none rounded-xl relative block w-full px-12 py-3 border border-gray-200 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all sm:text-sm"
-                placeholder="Senha"
+                placeholder="Sua senha"
               />
+            </div>
+            <div className="relative">
+              <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">Tipo de Usuário</label>
+              <select
+                id="role"
+                name="role"
+                value={role}
+                onChange={(e) => setRole(e.target.value as 'teacher' | 'student')}
+                className="block w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all sm:text-sm"
+              >
+                <option value="student">Estudante</option>
+                <option value="teacher">Professor</option>
+              </select>
             </div>
           </div>
 
@@ -91,18 +123,18 @@ const Login: React.FC = () => {
                 {loading ? (
                   <Loader2 className="animate-spin h-5 w-5 text-blue-300" />
                 ) : (
-                  <LogIn className="h-5 w-5 text-blue-300 group-hover:text-blue-100" />
+                  <UserPlus className="h-5 w-5 text-blue-300 group-hover:text-blue-100" />
                 )}
               </span>
-              {loading ? 'Entrando...' : 'Entrar no sistema'}
+              {loading ? 'Criando conta...' : 'Cadastrar agora'}
             </button>
           </div>
           
           <div className="text-center pt-4 border-t border-gray-50">
             <p className="text-sm text-gray-500">
-              Não tem uma conta?{' '}
-              <Link to="/register" className="font-bold text-blue-600 hover:text-blue-500">
-                Cadastre-se
+              Já tem uma conta?{' '}
+              <Link to="/login" className="font-bold text-blue-600 hover:text-blue-500">
+                Faça login
               </Link>
             </p>
           </div>
@@ -112,4 +144,4 @@ const Login: React.FC = () => {
   );
 };
 
-export default Login;
+export default Register;

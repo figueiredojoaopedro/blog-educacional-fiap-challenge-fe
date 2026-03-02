@@ -23,33 +23,29 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
   const [loading, setLoading] = useState(false);
 
   const getPosts = useCallback(async (search?: string) => {
+    console.log("PostContext: getPosts called", { search });
     setLoading(true);
     try {
-      const response = await api.get("/posts", { params: { search } });
-      setPosts(response.data);
+      console.log("PostContext: making API request to /posts");
+      const response = await api.get("/posts", { 
+        params: { 
+          search,
+          limit: 10,
+          page: 1
+        } 
+      });
+      console.log("PostContext: API response received", response.data);
+      // Map _id to id if necessary
+      const mappedPosts = Array.isArray(response.data) 
+        ? response.data.map((post: any) => ({
+            ...post,
+            id: post.id || post._id
+          }))
+        : [];
+      setPosts(mappedPosts);
     } catch (error) {
-      console.error("Failed to fetch posts:", error);
-      // For testing/initial setup, use mock data if API fails
-      setPosts([
-        {
-          id: "1",
-          title: "Bem-vindo ao Blog FIAP",
-          summary: "Este é o primeiro post do blog educacional.",
-          content: "Conteúdo completo do post de boas-vindas.",
-          author: "Prof. João",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-        {
-          id: "2",
-          title: "React Hooks na prática",
-          summary: "Aprenda a usar hooks básicos.",
-          content: "Neste post vamos explorar useState e useEffect.",
-          author: "Prof. Maria",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        },
-      ]);
+      console.error("PostContext: Failed to fetch posts:", error);
+      setPosts([]);
     } finally {
       setLoading(false);
     }
@@ -58,10 +54,11 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
   const getPost = async (id: string) => {
     try {
       const response = await api.get(`/posts/${id}`);
-      return response.data;
+      const post = response.data;
+      return { ...post, id: post.id || post._id };
     } catch (error) {
       console.error(`Failed to fetch post ${id}:`, error);
-      return posts.find((p) => p.id === id);
+      return undefined;
     }
   };
 
@@ -73,14 +70,7 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
       await getPosts();
     } catch (error) {
       console.error("Failed to create post:", error);
-      // Mock update
-      const newPost: Post = {
-        ...post,
-        id: Math.random().toString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      setPosts((prev) => [...prev, newPost]);
+      throw error;
     }
   };
 
@@ -90,14 +80,7 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
       await getPosts();
     } catch (error) {
       console.error(`Failed to update post ${id}:`, error);
-      // Mock update
-      setPosts((prev) =>
-        prev.map((p) =>
-          p.id === id
-            ? { ...p, ...post, updatedAt: new Date().toISOString() }
-            : p,
-        ),
-      );
+      throw error;
     }
   };
 
@@ -107,8 +90,7 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
       await getPosts();
     } catch (error) {
       console.error(`Failed to delete post ${id}:`, error);
-      // Mock delete
-      setPosts((prev) => prev.filter((p) => p.id !== id));
+      throw error;
     }
   };
 

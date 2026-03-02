@@ -3,7 +3,6 @@ export interface Post {
   title: string;
   content: string;
   author: string;
-  summary: string;
   createdAt: string;
   updatedAt: string;
 }

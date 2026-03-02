@@ -5,6 +5,7 @@ import { PostProvider } from "./contexts/PostContext";
 import Home from "./pages/Home";
 import PostView from "./pages/PostView";
 import Login from "./pages/Login";
+import Register from "./pages/Register";
 import Admin from "./pages/Admin";
 import PostForm from "./pages/PostForm";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -24,6 +25,7 @@ const App: React.FC = () => {
                 <Route path="/" element={<Home />} />
                 <Route path="/post/:id" element={<PostView />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
 
                 {/* Protected routes */}
                 <Route element={<ProtectedRoute />}>
