@@ -5,7 +5,7 @@ import api from "../services/api";
 interface PostContextData {
   posts: Post[];
   loading: boolean;
-  getPosts: (search?: string) => Promise<void>;
+  getPosts: (search?: string) => Promise<Post[] | void>;
   getPost: (id: string) => Promise<Post | undefined>;
   createPost: (
     post: Omit<Post, "id" | "createdAt" | "updatedAt">,
@@ -26,22 +26,19 @@ export const PostProvider: React.FC<{ children: React.ReactNode }> = ({
     console.log("PostContext: getPosts called", { search });
     setLoading(true);
     try {
-      console.log("PostContext: making API request to /posts");
-      const response = await api.get("/posts", { 
-        params: { 
-          search,
-          limit: 10,
-          page: 1
-        } 
-      });
+      const url = search ? "/posts/search" : "/posts";
+      const params = search ? { q: search } : { limit: 10, page: 1 };
+
+      console.log(`PostContext: making API request to ${url}`, { params });
+      const response = await api.get(url, { params });
+      
       console.log("PostContext: API response received", response.data);
-      // Map _id to id if necessary
-      const mappedPosts = Array.isArray(response.data) 
-        ? response.data.map((post: any) => ({
-            ...post,
-            id: post.id || post._id
-          }))
-        : [];
+      // Map _id to id if necessary (handling both potential array formats)
+      const data = Array.isArray(response.data) ? response.data : response.data.posts || [];
+      const mappedPosts = data.map((post: any) => ({
+        ...post,
+        id: post.id || post._id,
+      }));
       setPosts(mappedPosts);
     } catch (error) {
       console.error("PostContext: Failed to fetch posts:", error);
